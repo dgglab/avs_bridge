@@ -143,32 +143,34 @@ def print_stuff():
 
     
 def scan_fridge(delay=120):
-    rm = visa.ResourceManager()
-    t = int(time.time())
-    t2= time.ctime(t)
-    path = "/Users/dgglab/Desktop/TempDataStorage/"
-    try:
-        print("SCANNING")
-        with rm.open_resource('GPIB0::21::INSTR') as avs: # GPIB0::21 should be fridge side AVS
-            avs.clear()
-            print('ID:', avs.query('*IDN?').strip())
-            values = list(FridgeScan(avs))
-            print(values)
-    except Exception as e:
-        print(e)
-        time.sleep(10)
-    clear_output(wait=True)
-    print(time.strftime('%l:%M%p %Z on %b %d, %Y'))
-    for chan, avg, std in values:
-        name = _SENSORS[chan][0]
-        temp = _SENSORS[chan][1](avg)
-        print(f'{name:>15}\t{avg:>10.2f} Ω\t{temp:>10.5f} K')
-        errs = []
-        with open(path+f'Fridge_{name}.txt', "a") as myfile: # Ensure File name matches AVS
-            myfile.write(f'{t}\t{t2}\t{avg:>10.2f}\t{temp:>10.5f}\tIdle\t\n')
-            myfile.close()
-    print(f'Scanned in {time.time() - t:.1f} seconds.')
-    for chan, err in errs:
-        print(f'{chan}: {err}')
-    time.sleep(delay)
+    while True:
+        rm = visa.ResourceManager()
+        t = int(time.time())
+        t2= time.ctime(t)
+        path = "/Users/dgglab/Desktop/TempDataStorage/"
+        try:
+            print("SCANNING")
+            with rm.open_resource('GPIB0::21::INSTR') as avs: # GPIB0::21 should be fridge side AVS
+                avs.clear()
+                print('ID:', avs.query('*IDN?').strip())
+                values = list(FridgeScan(avs))
+                print(values)
+        except Exception as e:
+            print(e)
+            time.sleep(10)
+            continue
+        clear_output(wait=True)
+        print(time.strftime('%l:%M%p %Z on %b %d, %Y'))
+        for chan, avg, std in values:
+            name = _SENSORS[chan][0]
+            temp = _SENSORS[chan][1](avg)
+            print(f'{name:>15}\t{avg:>10.2f} Ω\t{temp:>10.5f} K')
+            errs = []
+            with open(path+f'Fridge_{name}.txt', "a") as myfile: # Ensure File name matches AVS
+                myfile.write(f'{t}\t{t2}\t{avg:>10.2f}\t{temp:>10.5f}\tIdle\t\n')
+                myfile.close()
+        print(f'Scanned in {time.time() - t:.1f} seconds.')
+        for chan, err in errs:
+            print(f'{chan}: {err}')
+        time.sleep(delay)
 
