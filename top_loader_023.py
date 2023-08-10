@@ -142,7 +142,7 @@ def print_stuff():
     print(f'Channel {channel}\t{name}\tResistance {res} Ω\tTemperature {temp:.4f} K')
 
     
-def scan_fridge():
+def scan_fridge(delay=120):
     rm = visa.ResourceManager()
     t = int(time.time())
     t2= time.ctime(t)
@@ -170,8 +170,5 @@ def scan_fridge():
     print(f'Scanned in {time.time() - t:.1f} seconds.')
     for chan, err in errs:
         print(f'{chan}: {err}')
-    time.sleep(120)
+    time.sleep(delay)
 
-def scan_fridge_continuously():
-    while True:
-        scan_fridge()
