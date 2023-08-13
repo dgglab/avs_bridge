@@ -88,7 +88,7 @@ def S0927_cal(r):
     ]
     return np.power(10, np.polynomial.polynomial.polyval(np.log10(r), coeffs)) / 1000
 
-_SENSORS = [
+_FRIDGESENSORS = [
     ('3K_low', RuO2_10k_cal),      # 0
     ('Still', RuO2_10k_cal),       # 1
     ('50mK', RuO2_1k5_cal),        # 2
@@ -97,16 +97,7 @@ _SENSORS = [
     ('Magnet', RuO2_10k_cal),      # 5
 ]
 
-# _SENSORS = [
-#     ('3K_high', RuO2_1k5_cal),      # 0
-#     ('Still', RuO2_1k5_cal),       # 1
-#     ('50mK', RuO2_1k5_cal),        # 2
-#     ('MixingCh_low', TT1304_cal),  # 3
-#     ('MixingCh_high', Pt1000_cal), # 4
-#     ('Magnet', RuO2_1k5_cal),      # 5
-# ]
-
-def FridgeScan(avs):
+def FridgeScan(avs, channels=[0, 1, 2, 3, 4]):
     # Wait for it to finish whatever it was doing.
     while avs.query('*OPC?').strip() != '1':
         time.sleep(1)
@@ -119,7 +110,7 @@ def FridgeScan(avs):
     while avs.query('*OPC?').strip() != '1':
         time.sleep(1)
     # Read out the results.
-    for i in [int(0),int(1),int(2),int(3),int(4),int(5)]:
+    for i in channels:
         avg, std = avs.query(f'REM 1;SCR {i};AVE?;STD?;REM 0').strip().split(';')
         avg = float(avg.split(' ')[-1])
         std = float(std.split(' ')[-1])
@@ -137,12 +128,12 @@ def print_stuff():
     if int(avs.query('OVL?').strip().split(' ')[1]) != 0:
         return
     
-    name, temp_cal = _SENSORS[channel]
+    name, temp_cal = _FRIDGESENSORS[channel]
     temp = temp_cal(res)
     print(f'Channel {channel}\t{name}\tResistance {res} Ω\tTemperature {temp:.4f} K')
 
     
-def scan_fridge(delay=120):
+def scan_fridge(delay=120, channels=[0, 1, 2, 3, 4]):
     while True:
         rm = visa.ResourceManager()
         t = int(time.time())
@@ -153,7 +144,7 @@ def scan_fridge(delay=120):
             with rm.open_resource('GPIB0::21::INSTR') as avs: # GPIB0::21 should be fridge side AVS
                 avs.clear()
                 print('ID:', avs.query('*IDN?').strip())
-                values = list(FridgeScan(avs))
+                values = list(FridgeScan(avs, channels=channels))
                 print(values)
         except Exception as e:
             print(e)
@@ -162,8 +153,8 @@ def scan_fridge(delay=120):
         clear_output(wait=True)
         print(time.strftime('%l:%M%p %Z on %b %d, %Y'))
         for chan, avg, std in values:
-            name = _SENSORS[chan][0]
-            temp = _SENSORS[chan][1](avg)
+            name = _FRIDGESENSORS[chan][0]
+            temp = _FRIDGESENSORS[chan][1](avg)
             print(f'{name:>15}\t{avg:>10.2f} Ω\t{temp:>10.5f} K')
             errs = []
             with open(path+f'Fridge_{name}.txt', "a") as myfile: # Ensure File name matches AVS
