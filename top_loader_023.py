@@ -97,7 +97,7 @@ _FRIDGESENSORS = [
     ('Magnet', RuO2_10k_cal),      # 5
 ]
 
-def FridgeScan(avs, channels=[0, 1, 2, 3, 4]):
+def FridgeScan(avs, channels=[0, 1, 2, 3, 4, 5]):
     # Wait for it to finish whatever it was doing.
     while avs.query('*OPC?').strip() != '1':
         time.sleep(1)
@@ -133,7 +133,7 @@ def print_stuff():
     print(f'Channel {channel}\t{name}\tResistance {res} Ω\tTemperature {temp:.4f} K')
 
     
-def scan_fridge(delay=120, channels=[0, 1, 2, 3, 4]):
+def scan_fridge(delay=120, channels=[0, 1, 2, 3, 4, 5]):
     while True:
         rm = visa.ResourceManager()
         t = int(time.time())
