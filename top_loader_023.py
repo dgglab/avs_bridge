@@ -142,11 +142,31 @@ def S0927_cal(r):
     ]
     return np.power(10, np.polynomial.polynomial.polyval(np.log10(r), coeffs)) / 1000
 
-_FRIDGESENSORS = [
+_SENSORSFRIDGE = [
+    ('3K_low', RuO2_10k_cal),      # 0
+    ('Still', RuO2_10k_cal),       # 1
+    ('50mK', RuO2_1k5_cal),        # 2
+    ('MixingCh_low', TT1305_cal),  # 3
+    ('MixingCh_high', Pt1000_cal), # 4
+    ('Magnet', RuO2_10k_cal),      # 5
+]
+
+# Straight probe
+_SENSORSPROBE1 = [
     ('3K_low', RuO2_10k_cal),      # 0
     ('Still', RuO2_10k_cal),       # 1
     ('50mK', RuO2_1k5_cal),        # 2
     ('MixingCh_low', TT1304_cal),  # 3
+    ('MixingCh_high', Pt1000_cal), # 4
+    ('Magnet', RuO2_10k_cal),      # 5
+]
+
+# Rotator probe
+_SENSORSPROBE2 = [
+    ('3K_low', RuO2_10k_cal),      # 0
+    ('Still', RuO2_10k_cal),       # 1
+    ('50mK', RuO2_1k5_cal),        # 2
+    ('MixingCh_low', TT1308_cal),  # 3
     ('MixingCh_high', Pt1000_cal), # 4
     ('Magnet', RuO2_10k_cal),      # 5
 ]
@@ -182,7 +202,7 @@ def print_stuff():
     if int(avs.query('OVL?').strip().split(' ')[1]) != 0:
         return
     
-    name, temp_cal = _FRIDGESENSORS[channel]
+    name, temp_cal = _SENSORSFRIDGE[channel]
     temp = temp_cal(res)
     print(f'Channel {channel}\t{name}\tResistance {res} Ω\tTemperature {temp:.4f} K')
 
@@ -205,8 +225,8 @@ def scan_fridge(delay=120, channels=[0, 1, 2, 3, 4, 5]):
     clear_output(wait=True)
     print(time.strftime('%l:%M%p %Z on %b %d, %Y'))
     for chan, avg, std in values:
-        name = _FRIDGESENSORS[chan][0]
-        temp = _FRIDGESENSORS[chan][1](avg)
+        name = _SENSORSFRIDGE[chan][0]
+        temp = _SENSORSFRIDGE[chan][1](avg)
         print(f'{name:>15}\t{avg:>10.2f} Ω\t{temp:>10.5f} K')
         errs = []
         with open(path+f'Fridge_{name}.txt', "a") as myfile: # Ensure File name matches AVS
@@ -217,3 +237,62 @@ def scan_fridge(delay=120, channels=[0, 1, 2, 3, 4, 5]):
         print(f'{chan}: {err}')
     time.sleep(delay)
 
+def scan_probe1(delay=120, channels=[0, 1, 2, 3, 4, 5]):
+    rm = visa.ResourceManager()
+    t = int(time.time())
+    t2= time.ctime(t)
+    path = "/Users/dgglab/Desktop/TempDataStorage/"
+    try:
+        print("SCANNING")
+        with rm.open_resource('GPIB0::21::INSTR') as avs: # GPIB0::21 should be fridge side AVS
+            avs.clear()
+            print('ID:', avs.query('*IDN?').strip())
+            values = list(FridgeScan(avs, channels=channels))
+            print(values)
+    except Exception as e:
+        print(e)
+        time.sleep(10)
+    clear_output(wait=True)
+    print(time.strftime('%l:%M%p %Z on %b %d, %Y'))
+    for chan, avg, std in values:
+        name = _SENSORSPROBE1[chan][0]
+        temp = _SENSORSPROBE1[chan][1](avg)
+        print(f'{name:>15}\t{avg:>10.2f} Ω\t{temp:>10.5f} K')
+        errs = []
+        with open(path+f’Probe1_{name}.txt', "a") as myfile: # Ensure File name matches AVS
+            myfile.write(f'{t}\t{t2}\t{avg:>10.2f}\t{temp:>10.5f}\tIdle\t\n')
+            myfile.close()
+    print(f'Scanned in {time.time() - t:.1f} seconds.')
+    for chan, err in errs:
+        print(f'{chan}: {err}')
+    time.sleep(delay)
+
+def scan_probe2(delay=120, channels=[0, 1, 2, 3, 4, 5]):
+    rm = visa.ResourceManager()
+    t = int(time.time())
+    t2= time.ctime(t)
+    path = "/Users/dgglab/Desktop/TempDataStorage/"
+    try:
+        print("SCANNING")
+        with rm.open_resource('GPIB0::21::INSTR') as avs: # GPIB0::21 should be fridge side AVS
+            avs.clear()
+            print('ID:', avs.query('*IDN?').strip())
+            values = list(FridgeScan(avs, channels=channels))
+            print(values)
+    except Exception as e:
+        print(e)
+        time.sleep(10)
+    clear_output(wait=True)
+    print(time.strftime('%l:%M%p %Z on %b %d, %Y'))
+    for chan, avg, std in values:
+        name = _SENSORSPROBE2[chan][0]
+        temp = _SENSORSPROBE2[chan][1](avg)
+        print(f'{name:>15}\t{avg:>10.2f} Ω\t{temp:>10.5f} K')
+        errs = []
+        with open(path+f’Probe2_{name}.txt', "a") as myfile: # Ensure File name matches AVS
+            myfile.write(f'{t}\t{t2}\t{avg:>10.2f}\t{temp:>10.5f}\tIdle\t\n')
+            myfile.close()
+    print(f'Scanned in {time.time() - t:.1f} seconds.')
+    for chan, err in errs:
+        print(f'{chan}: {err}')
+    time.sleep(delay)
