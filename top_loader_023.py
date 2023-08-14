@@ -6,6 +6,11 @@ from IPython.display import clear_output
 
 
 def Pt1000_cal(r):
+    '''
+    Used for:
+    - Fridge mixing chamber hi
+    - Probe mixing chamber hi
+    '''
     if r < 25 or r > 1400:
         return 0
     coeffs = [
@@ -23,6 +28,14 @@ def Pt1000_cal(r):
     return np.power(10, np.polynomial.polynomial.polyval(np.log10(r), coeffs))
 
 def RuO2_10k_cal(r):
+    '''
+    Used for:
+    - Fridge 3K Low
+    - Fridge Still 
+    - Magnet
+    - Probe 3K
+    - Probe still
+    '''
     r = r / 1000
     if r < 10.8 or r > 320:
         return 0
@@ -41,6 +54,11 @@ def RuO2_10k_cal(r):
     return np.power(10, np.polynomial.polynomial.polyval(np.log10(r), coeffs)) / 1000
 
 def RuO2_1k5_cal(r):
+    '''
+    Used for:
+    - Fridge 50 mK
+    - Probe 50 mK
+    '''
     if r < 2000 or r > 17000:
         return 0
     coeffs = [
@@ -58,6 +76,7 @@ def RuO2_1k5_cal(r):
     return np.power(10, np.polynomial.polynomial.polyval(np.log10(r), coeffs)) / 1000
 
 def TT1304_cal(r):
+    # On straight probe mixing chamber
     if r < 1600 or r > 75000:
         return 0
     coeffs = [
@@ -74,6 +93,41 @@ def TT1304_cal(r):
     ]
     return np.power(10, np.polynomial.polynomial.polyval(np.log10(r), coeffs)) / 1000
 
+def TT1305_cal(r):
+    # On fridge mixing chamber
+    if r < 1600 or r > 75000:
+        return 0
+    coeffs = [ 
+	-163733.07258096553,
+	333718.31665939908,
+	-296819.44270129508,
+	150507.78635092167,
+	-47595.4776533601,
+	9613.0779306768,
+	-1211.12055853135,
+	87.02647862814,
+	-2.73081792303,
+	0,
+    ]
+    return np.power(10, np.polynomial.polynomial.polyval(np.log10(r), coeffs)) / 1000
+
+def TT1308_cal(r):
+    # On rotator probe mixing chamber
+    if r < 1600 or r > 75000:
+        return 0
+    coeffs = [
+	252133.15476484009,
+	-489555.75060558028,
+	414687.06848509354,
+	-200136.59816212513,
+	60188.36749358858,
+	-11549.4276043042,
+	1380.88202910224,
+	-94.0528605672,
+	2.79391775134,
+	0,
+    ]
+    return np.power(10, np.polynomial.polynomial.polyval(np.log10(r), coeffs)) / 1000
 
 def S0927_cal(r):
     if r < 600 or r > 100000:
